@@ -1,0 +1,13 @@
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test:
+    uses: ./.github/workflows/reusable-build-test.yml
+    with:
+      node_version: "18"
+      run_tests: true
