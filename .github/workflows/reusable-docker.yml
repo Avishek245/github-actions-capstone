@@ -1,0 +1,39 @@
+name: Reusable Docker Workflow
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+    secrets:
+      docker_username:
+        required: true
+      docker_token:
+        required: true
+    outputs:
+      image_url:
+        value: ${{ jobs.docker.outputs.image_url }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    outputs:
+      image_url: ${{ steps.meta.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.docker_token }}" | docker login -u "${{ secrets.docker_username }}" --password-stdin
+
+      - name: Build and Push
+        id: meta
+        run: |
+          IMAGE=${{ secrets.docker_username }}/${{ inputs.image_name }}:${{ inputs.tag }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
